@@ -1,4 +1,4 @@
-var memory = exports;
+var memory = module.exports;
 
 var stores = memory.stores = {};
 
@@ -78,6 +78,7 @@ Memory.prototype.save = function(query, val, callback) {
     val = query;
   }
 
+  // convert to string
   query += '';
 
   this.store[query] = val;
