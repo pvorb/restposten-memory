@@ -9,4 +9,4 @@ used as a standalone in-memory db.
 License
 -------
 
-[MIT License](LICENSE.txt)
+[Apache 2.0 License](LICENSE.txt)
