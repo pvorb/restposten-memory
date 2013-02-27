@@ -4,7 +4,26 @@ var Cache = require('persistence-cache').Cache;
 exports.stores = {};
 exports.caches = {};
 
-var Memory = exports.Memory = function(options) {
+/**
+ * Connects to memory db.
+ * 
+ * This is only needed for similarity to other db layers.
+ * 
+ * @param options
+ *            [optional]
+ * @param callback
+ *            (err, db)
+ */
+exports.connect = function(options, callback) {
+  if (typeof options == 'function') {
+    callback = options;
+    options = {};
+  }
+
+  callback(null, new Memory(options));
+};
+
+var Memory = exports.Memory = function Memory(options) {
   var counter = 0;
   options = options || {};
   this.uri = options.uri;
