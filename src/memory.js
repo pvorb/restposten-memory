@@ -1,86 +1,136 @@
-var memory = module.exports;
+var append = require('append');
+var Cache = require('persistence-cache').Cache;
 
-var stores = memory.stores = {};
+exports.stores = {};
+exports.caches = {};
 
-/**
- * Connects to MongoDB.
- * 
- * @param options
- *            [optional]
- * @param callback
- *            (err, db)
- */
-memory.connect = function(options, callback) {
-  if (typeof options == 'function') {
-    callback = options;
-    options = {};
-  }
-
-  callback(null, new Memory(options));
-};
-
-/**
- * Memory engine constructor.
- * 
- * @param options
- */
-function Memory(options) {
-  options = options || {};
-
-  var uri = this.uri = options.uri;
+var Memory = exports.Memory = function(options) {
   var counter = 0;
-  function incr() {
+  options = options || {};
+  this.uri = options.uri;
+
+  this.increment = function() {
     return ++counter;
-  }
+  };
 
-  // application-wide store
-  if (typeof options.uri == 'string')
-    if (!stores[uri])
-      this.store = stores[uri] = {};
-    else
-      this.store = stores[uri];
-  // connection-wide store
-  else
+  if (typeof this.uri == 'string') {
+    // Application-wide store
+    if (!exports.stores[this.uri]) {
+      this.store = exports.stores[this.uri] = {};
+      this.cache = exports.caches[this.uri] = new Cache();
+    } else {
+      // Use store that was created before
+      this.store = exports.stores[this.uri];
+      this.cache = exports.caches[this.uri];
+    }
+  } else {
+    // Connection-wise store
     this.store = {};
+    this.cache = new Cache();
+  }
 };
 
-Memory.prototype.key = '_id';
+Memory.prototype.protocol = 'memory';
 
-/**
- * Get a value from the db.
- * 
- * @param callback
- *            (err, result)
- */
-Memory.prototype.get = function(query, callback) {
-  if (typeof query == 'string') {
-    var res = this.store[query];
-    if (typeof res != 'undefined')
-      callback(null, res);
-    else
-      callback(new Error(query + ' not found.'));
+Memory.prototype.load = function(data) {
+  if (data instanceof Array) {
+    var tmp = {};
+    data.forEach(function(e) {
+      tmp[e.id] = JSON.stringify(e);
+    });
+    data = tmp;
   }
-  // TODO query objects
+
+  this.store = data;
+
+  // Update cache
+  if (this.uri) {
+    exports.stores[this.uri] = JSON.parse(JSON.stringify(this.store));
+  }
+
+  return this;
 };
 
-/**
- * Save a value to the db.
- * 
- * @param query
- *            [optional]
- * @param val
- * @param callback
- *            (err, changeCount)
- */
-Memory.prototype.save = function(query, val, callback) {
-  if (arguments.length < 3) {
-    callback = val;
-    val = query;
+Memory.prototype.request = function(fn) {
+  var self = this;
+
+  process.nextTick(function() {
+    fn.call(self);
+  });
+};
+
+Memory.prototype.save = function(key, val, callback) {
+  var args = Array.prototype.slice.call(arguments);
+  var callback = args.pop(), val = args.pop();
+  if (!args.length || !key) {
+    key = this.increment();
+    val.id = key;
   }
 
-  // convert to string
-  query += '';
+  // Forces key to be a string
+  key += '';
+  val.id += '';
 
-  this.store[query] = val;
-  callback(null, 1);
+  this.request(function() {
+    this.store[key] = JSON.stringify(val);
+    callback(null, val);
+  });
+};
+
+Memory.prototype.put = function() {
+  this.save.apply(this, arguments);
+};
+
+Memory.prototype.update = function(key, obj, callback) {
+  var jsObj = JSON.parse(this.store[key] || "{}");
+  this.put(key, append(jsObj, obj), callback);
+};
+
+Memory.prototype.get = function(key, callback) {
+  this.request(function() {
+    key = key.toString();
+    return (key in this.store) ? callback(null, JSON.parse(this.store[key]
+        || "null")) : callback({
+      status : 404
+    });
+  });
+};
+
+Memory.prototype.destroy = function(key, callback) {
+  this.request(function() {
+    delete this.store[key];
+    return callback(null, {
+      status : 204
+    });
+  });
+};
+
+Memory.prototype.find = function(conditions, callback) {
+  this.filter(function(obj) {
+    return Object.keys(conditions).every(function(k) {
+      return conditions[k] === obj[k];
+    });
+  }, callback);
+};
+
+Memory.prototype.filter = function(filter, callback) {
+  this.request(function() {
+    var result = [], store = this.store;
+
+    Object.keys(this.store).forEach(function(k) {
+      var obj = JSON.parse(store[k]);
+      if (filter(obj)) {
+        obj.id = obj.id.split('/').slice(1).join('/');
+        result.push(obj);
+      }
+    });
+
+    callback(null, result);
+  });
+};
+
+Memory.prototype.sync = function(factory, callback) {
+  process.nextTick(function() {
+    callback();
+  });
 };
