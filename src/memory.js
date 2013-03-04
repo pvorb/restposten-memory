@@ -166,6 +166,7 @@ function matches(query, record) {
   for ( var i = 0; i < len; i++) {
     var key = keys[i];
     if (record[key] != query[key])
+      // FIXME statements
   }
 
   results.push(this._coll[query._id]);
