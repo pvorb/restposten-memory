@@ -23,6 +23,9 @@ exports.connect = function(options, callback) {
   callback(null, new Memory(options));
 };
 
+/**
+ * Constructor
+ */
 var Memory = exports.Memory = function Memory(options) {
   var counter = 0;
   options = options || {};
@@ -32,8 +35,7 @@ var Memory = exports.Memory = function Memory(options) {
     return ++counter;
   };
 
-  if (typeof this.uri == 'string') {
-    // Application-wide store
+  if (typeof this.uri == 'string') { // Application-wide store
     if (!exports.stores[this.uri]) {
       this.store = exports.stores[this.uri] = {};
       this.cache = exports.caches[this.uri] = new Cache();
@@ -42,8 +44,7 @@ var Memory = exports.Memory = function Memory(options) {
       this.store = exports.stores[this.uri];
       this.cache = exports.caches[this.uri];
     }
-  } else {
-    // Connection-wise store
+  } else { // Connection-wide store
     this.store = {};
     this.cache = new Cache();
   }
@@ -51,6 +52,9 @@ var Memory = exports.Memory = function Memory(options) {
 
 Memory.prototype.protocol = 'memory';
 
+/**
+ * Loads some data into this store.
+ */
 Memory.prototype.load = function(data) {
   if (data instanceof Array) {
     var tmp = {};
@@ -70,6 +74,9 @@ Memory.prototype.load = function(data) {
   return this;
 };
 
+/**
+ * Request a function.
+ */
 Memory.prototype.request = function(fn) {
   var self = this;
 
@@ -78,6 +85,11 @@ Memory.prototype.request = function(fn) {
   });
 };
 
+/**
+ * Save the record at the given key.
+ * 
+ * @see Memory.prototype.put
+ */
 Memory.prototype.save = function(key, val, callback) {
   var args = Array.prototype.slice.call(arguments);
   var callback = args.pop(), val = args.pop();
@@ -96,15 +108,28 @@ Memory.prototype.save = function(key, val, callback) {
   });
 };
 
+/**
+ * Save the record at the given key.
+ * 
+ * @see Memory.prototype.save
+ */
 Memory.prototype.put = function() {
   this.save.apply(this, arguments);
 };
 
+/**
+ * Updates a record.
+ * 
+ * TODO Should behave like a save, but a file must.
+ */
 Memory.prototype.update = function(key, obj, callback) {
-  var jsObj = JSON.parse(this.store[key] || "{}");
-  this.put(key, append(jsObj, obj), callback);
+  var current = JSON.parse(this.store[key] || "{}");
+  this.put(key, append(current, obj), callback);
 };
 
+/**
+ * 
+ */
 Memory.prototype.get = function(key, callback) {
   this.request(function() {
     key = key.toString();
