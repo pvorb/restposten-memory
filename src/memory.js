@@ -144,13 +144,13 @@ Collection.prototype.find = function(query, fields, options, callback) {
       var match = true;
       for ( var i = 0; i < keys.length; i++) {
         var key = keys[i];
-
+        // FIXME
       }
 
       results.push(this._coll[query._id]);
     }
   } else {
-
+    // FIXME
   }
 
   process.nextTick(function() {
