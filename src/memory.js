@@ -305,15 +305,16 @@ Collection.prototype.save = function(record, options, callback) {
   if (typeof record._id == 'undefined') {
     _id = uuid.v1();
     record._id = _id;
-    
+    result = record;
   } else {
     _id = record._id;
+    result = 1;
   }
 
   this._coll[_id] = record;
   
   process.nextTick(function() {
-    callback(null, )
+    callback(null, result);
   });
 };
 
@@ -325,8 +326,12 @@ Collection.prototype.save = function(record, options, callback) {
  * @param {Object}
  *            [options] ignored
  * @param {Function(err,
- *            res)} callback is called when an error occurs or when the
+ *            deleted)} callback is called when an error occurs or when the
  *            record(s) have been deleted
+ * @param {Error*}
+ *            callback.err the error, if an error occurred or `null`
+ * @param {Object|Int}
+ *            callback.deleted the number of records that have been deleted
  */
 Collection.prototype.delete = function(query, options, callback) {
   // optional arguments
