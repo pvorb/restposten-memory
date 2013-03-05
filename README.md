@@ -6,6 +6,18 @@ In-memory database engine intended to be used with
 used as a standalone in-memory db.
 
 
+Installation
+------------
+
+    npm install persistence-mongodb
+
+
+API Documentation
+-----------------
+
+You can find the API docs at <http://n-fuse.github.com/persistence-memory/>.
+
+
 License
 -------
 
