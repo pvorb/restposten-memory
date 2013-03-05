@@ -23,5 +23,6 @@
 		"persistence-cache": "~0.0.0"
 	},
 	"devDependencies": {
+		"async": "*"
 	}
 }

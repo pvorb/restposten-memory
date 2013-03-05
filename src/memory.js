@@ -82,7 +82,7 @@ DB.prototype.getCollection = function(name, indexes, callback) {
   var collection = this._store[name];
 
   process.nextTick(function() {
-    return callback(null, collection);
+    return callback(null, new Collection(collection));
   });
 };
 
