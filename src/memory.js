@@ -82,9 +82,28 @@ DB.prototype.getCollection = function(name, indexes, callback) {
   var collection = this._store[name];
 
   process.nextTick(function() {
-    return callback(null, new Collection(collection));
+    callback(null, new Collection(collection));
   });
 };
+
+/**
+ * Closes the connection to the database.
+ * 
+ * @param {Boolean}
+ *            [force] force to close the connect so that it cannot be reused.
+ * @param {Function(err,
+ *            results)} callback is called when the db has been closed or an
+ *            error occurred
+ * @param {Error*}
+ *            callback.err the error, if an error occurred or `null`
+ * @param {Object}
+ *            callback.results
+ */
+DB.prototype.close = function(force, callback) {
+  process.nextTick(function () {
+    callback(null);
+  });
+}
 
 /**
  * @classdesc Dummy wrapper around a collection object.
