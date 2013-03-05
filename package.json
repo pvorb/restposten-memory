@@ -19,8 +19,9 @@
 	"dependencies": {
 		"append": "~0.1.1",
 		"filtr": "~0.3.0",
+		"node-uuid": "~1.4.0",
 		"persistence-cache": "~0.0.0"
 	},
 	"devDependencies": {
 	}
-} 
+}

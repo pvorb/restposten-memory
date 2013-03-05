@@ -9,9 +9,8 @@
  * @module persistence-memory
  */
 
-// TODO needed?
-var append = require('append');
 var filtr = require('filtr');
+var uuid = require('node-uuid');
 
 var stores = {};
 
@@ -61,7 +60,7 @@ function DB(options) {
   this._store = {};
 };
 
-Memory.prototype.protocol = 'memory';
+DB.prototype.protocol = 'memory';
 
 /**
  * Creates/gets a collection.
@@ -104,6 +103,57 @@ function Collection(coll) {
 }
 
 /**
+ * Check if the record matches the query.
+ * 
+ * @param {Object}
+ *            query query object
+ * @param {Object}
+ *            record record
+ * 
+ * @returns {Boolean}
+ */
+function matches(query, record) {
+  var keys = Object.keys(query);
+  var len = keys.length;
+
+  var matches = true;
+  for ( var i = 0; i < len; i++) {
+    var key = keys[i];
+    if (record[key] !== query[key]) {
+      matches = false;
+      break;
+    }
+  }
+
+  return matches;
+}
+
+/**
+ * Filters fields of an object.
+ * 
+ * @param {Object}
+ *            record
+ * @param {String[]}
+ *            fields String array that specifies all requested keys
+ * @returns {Object} filtered object
+ */
+function filterFields(record, fields) {
+  // walk through the array and only inherit the properties in fields
+  var len = fields.length;
+  if (len > 0) {
+    var resultRec = {};
+    for ( var i = 0; i < len; i++) {
+      var key = fields[j];
+      resultRec[key] = record[key];
+    }
+    return resultRec;
+  } else {
+    // if fields is empty, return the record as is.
+    return record;
+  }
+}
+
+/**
  * Finds all records that match a given query.
  * 
  * @param {Object|String}
@@ -111,7 +161,7 @@ function Collection(coll) {
  * @param {String[]}
  *            [fields] specifies the fields of the resulting objects
  * @param {Object}
- *            [options] defines extra logic (sorting options, paging etc.)
+ *            [options] ignored
  * @param {Function(err,
  *            res)} callback is called when an error occurs or when the
  *            record(s) return
@@ -122,6 +172,8 @@ function Collection(coll) {
  *            record has been updated
  */
 Collection.prototype.find = function(query, fields, options, callback) {
+  // TODO handle options
+
   // optional arguments
   if (arguments.length == 2) {
     callback = fields;
@@ -134,23 +186,29 @@ Collection.prototype.find = function(query, fields, options, callback) {
   }
 
   var results = [];
+  var Q = filtr(query);
 
-  // match all keys
+  // find records
   if (typeof query._id != 'undefined') {
+    // check if the record with query._id matches the query
     if (typeof this._coll[query._id] != 'undefined') {
-      var obj = this._coll[query._id];
-      var keys = Object.keys(query);
-
-      var match = true;
-      for ( var i = 0; i < keys.length; i++) {
-        var key = keys[i];
-        // FIXME
-      }
-
-      results.push(this._coll[query._id]);
+      var rec = this._coll[query._id];
+      if (Q.test(rec, {
+        type : 'single'
+      }))
+        results.push(filterFields(rec, fields));
     }
   } else {
-    // FIXME
+    // match against all records
+    var keys = Object.keys(this._coll);
+    var len = keys.length;
+    for ( var i = 0; i < len; i++) {
+      var rec = this._coll[keys[i]];
+      if (Q.test(rec, {
+        type : 'single'
+      }))
+        results.push(filterFields(rec, fields));
+    }
   }
 
   process.nextTick(function() {
@@ -158,58 +216,65 @@ Collection.prototype.find = function(query, fields, options, callback) {
   });
 };
 
-function matches(query, record) {
-  var keys = Object.keys(query);
-  var len = keys.length;
-
-  var match = true;
-  for ( var i = 0; i < len; i++) {
-    var key = keys[i];
-    if (record[key] != query[key])
-      // FIXME statements
-  }
-
-  results.push(this._coll[query._id]);
-}
-
 /**
  * Finds the first record that matches a given query. Use this method, if you
  * know that there will be only one resulting document. (E.g. when you want to
  * find a result by its `_id`.)
  * 
  * @param {Object|String}
- *            query resulting objects must match this query. Consult the
- *            [node-mongodb-native
- *            documentation](http://mongodb.github.com/node-mongodb-native/markdown-docs/queries.html#query-object)
- * @param {String|Int|ObjectId}
- *            [query._id] If specified, MongoDB will search by ID
+ *            query resulting objects must match this query.
  * @param {String[]}
  *            [fields] specifies the fields of the resulting objects
  * @param {Object}
- *            [options] defines extra logic (sorting options, paging etc.)
+ *            [options] ignored
  * @param {Function(err,
  *            res)} callback is called when an error occurs or when the
  *            record(s) return
- * 
- * @see {@link http://mongodb.github.com/node-mongodb-native/api-generated/collection.html#find}
  */
 Collection.prototype.findOne = function(query, fields, options, callback) {
   // optional arguments
   if (arguments.length == 2) {
     callback = fields;
-    fields = null;
+    fields = [];
     options = {};
   } else if (arguments.length == 3) {
     callback = options;
     options = fields;
-    fields = null;
+    fields = [];
   }
 
-  // call the query
-  if (fields == null)
-    this._coll.findOne(query, options, callback);
-  else
-    this._coll.findOne(query, fields, options, callback);
+  var result = null;
+  var Q = filtr(query);
+
+  // find records
+  if (typeof query._id != 'undefined') {
+    // check if the record with query._id matches the query
+    if (typeof this._coll[query._id] != 'undefined') {
+      var rec = this._coll[query._id];
+      if (Q.test(rec, {
+        type : 'single'
+      }))
+        result = filterFields(rec, fields);
+    }
+  } else {
+    // match against all records
+    var keys = Object.keys(this._coll);
+    var len = keys.length;
+    for ( var i = 0; i < len; i++) {
+      var rec = this._coll[keys[i]];
+      if (Q.test(rec, {
+        type : 'single'
+      })) {
+        result = filterFields(rec, fields);
+        break;
+      }
+    }
+  }
+
+  // callback results
+  process.nextTick(function() {
+    callback(null, result);
+  });
 };
 
 /**
@@ -224,7 +289,7 @@ Collection.prototype.findOne = function(query, fields, options, callback) {
  *            [record._id] ID that is used by MongoDB. If no ID is specified,
  *            the a default MongoDB ID will be generated.
  * @param {Object}
- *            [options] defines extra logic (sorting options, paging etc.)
+ *            [options] ignored
  * @param {Function(err,
  *            saved)} callback is called when an error occurs or when the record
  *            has been saved
@@ -233,8 +298,6 @@ Collection.prototype.findOne = function(query, fields, options, callback) {
  * @param {Object|Int}
  *            callback.saved the record, if it has been inserted and `1` if the
  *            record has been updated
- * 
- * @see {@link http://mongodb.github.com/node-mongodb-native/api-generated/collection.html#save}
  */
 Collection.prototype.save = function(record, options, callback) {
   // optional arguments
@@ -243,101 +306,72 @@ Collection.prototype.save = function(record, options, callback) {
     options = {};
   }
 
-  options.safe = true;
-
-  this._coll.save(record, options, callback);
-};
-
-/**
- * Save the record at the given key.
- * 
- * @see Memory.prototype.put
- */
-Memory.prototype.save = function(key, val, callback) {
-  var args = Array.prototype.slice.call(arguments);
-  var callback = args.pop(), val = args.pop();
-  if (!args.length || !key) {
-    key = this.increment();
-    val.id = key;
+  var _id, result;
+  if (typeof record._id == 'undefined') {
+    _id = uuid.v1();
+    record._id = _id;
+    
+  } else {
+    _id = record._id;
   }
 
-  // Forces key to be a string
-  key += '';
-  val.id += '';
-
-  this.request(function() {
-    this.store[key] = JSON.stringify(val);
-    callback(null, val);
-  });
-};
-
-/**
- * Save the record at the given key.
- * 
- * @see Memory.prototype.save
- */
-Memory.prototype.put = function() {
-  this.save.apply(this, arguments);
-};
-
-/**
- * Updates a record.
- * 
- * TODO Should behave like a save, but a file must.
- */
-Memory.prototype.update = function(key, obj, callback) {
-  var current = JSON.parse(this.store[key] || "{}");
-  this.put(key, append(current, obj), callback);
-};
-
-/**
- * Gets a record.
- */
-Memory.prototype.get = function(key, callback) {
-  this.request(function() {
-    key = key.toString();
-    return (key in this.store) ? callback(null, JSON.parse(this.store[key]
-        || "null")) : callback({
-      status : 404
-    });
-  });
-};
-
-Memory.prototype.destroy = function(key, callback) {
-  this.request(function() {
-    delete this.store[key];
-    return callback(null, {
-      status : 204
-    });
-  });
-};
-
-Memory.prototype.find = function(conditions, callback) {
-  this.filter(function(obj) {
-    return Object.keys(conditions).every(function(k) {
-      return conditions[k] === obj[k];
-    });
-  }, callback);
-};
-
-Memory.prototype.filter = function(filter, callback) {
-  this.request(function() {
-    var result = [], store = this.store;
-
-    Object.keys(this.store).forEach(function(k) {
-      var obj = JSON.parse(store[k]);
-      if (filter(obj)) {
-        obj.id = obj.id.split('/').slice(1).join('/');
-        result.push(obj);
-      }
-    });
-
-    callback(null, result);
-  });
-};
-
-Memory.prototype.sync = function(factory, callback) {
+  this._coll[_id] = record;
+  
   process.nextTick(function() {
-    callback();
+    callback(null, )
+  });
+};
+
+/**
+ * Removes all records that match the given query object from the collection.
+ * 
+ * @param {Object|String}
+ *            query records that match this query will be deleted
+ * @param {Object}
+ *            [options] ignored
+ * @param {Function(err,
+ *            res)} callback is called when an error occurs or when the
+ *            record(s) have been deleted
+ */
+Collection.prototype.delete = function(query, options, callback) {
+  // optional arguments
+  if (arguments.length == 2) {
+    callback = options;
+    options = {};
+  }
+
+  var Q = filtr(query);
+  var numRemoved = 0;
+  
+  // find records
+  if (typeof query._id != 'undefined') {
+    // check if the record with query._id matches the query
+    if (typeof this._coll[query._id] != 'undefined') {
+      var rec = this._coll[query._id];
+      if (Q.test(rec, {
+        type : 'single'
+      })) {
+        numRemoved++;
+        delete this._coll[query._id];
+      }
+    }
+  } else {
+    // match against all records
+    var keys = Object.keys(this._coll);
+    var len = keys.length;
+    for ( var i = 0; i < len; i++) {
+      var rec = this._coll[keys[i]];
+      if (Q.test(rec, {
+        type : 'single'
+      })) {
+        numRemoved++;
+        delete this._coll[rec._id];
+      }
+    }
+  }
+
+  // callback results
+  process.nextTick(function() {
+    callback(null, numRemoved);
   });
 };
