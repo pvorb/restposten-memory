@@ -27,11 +27,6 @@ var stores = {};
  *            callback.err the error, if an error occurred or `null`
  * @param {DB}
  *            callback.db the `DB` instance
- * 
- * @see {@link http://mongodb.github.com/node-mongodb-native/markdown-docs/database.html#server-options}
- *      and
- *      {@link http://mongodb.github.com/node-mongodb-native/markdown-docs/database.html#db-options}
- *      for more information on the possible options
  */
 exports.connect = function(options, callback) {
   if (arguments.length == 1) {
