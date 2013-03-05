@@ -106,7 +106,7 @@ DB.prototype.close = function(force, callback) {
 }
 
 /**
- * @classdesc Dummy wrapper around a collection object.
+ * @classdesc Dummy wrapper around an object.
  * @constructor
  * 
  * @param {Object}
