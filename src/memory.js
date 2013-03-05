@@ -327,7 +327,10 @@ Collection.prototype.save = function(record, options, callback) {
     result = record;
   } else {
     _id = record._id;
-    result = 1;
+    if (typeof this._coll[_id] == 'undefined')
+      result = record;
+    else
+      result = 1;
   }
 
   this._coll[_id] = record;
