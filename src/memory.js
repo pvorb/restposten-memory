@@ -330,7 +330,7 @@ Collection.prototype.save = function(record, options, callback) {
     if (typeof this._coll[_id] == 'undefined')
       result = record;
     else
-      result = 1;
+      result = 1; // number of changed documents
   }
 
   this._coll[_id] = record;
