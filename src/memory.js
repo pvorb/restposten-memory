@@ -80,9 +80,9 @@ DB.prototype.getCollection = function(name, indexes, callback) {
   if (typeof this._store[name] == 'undefined')
     this._store[name] = {};
   var collection = this._store[name];
-
+  
   process.nextTick(function() {
-    callback(null, new Collection(collection));
+    callback(null, new Collection(name, collection));
   });
 };
 
@@ -109,37 +109,19 @@ DB.prototype.close = function(force, callback) {
  * @classdesc Dummy wrapper around an object.
  * @constructor
  * 
+ * @param {String}
+ *            name name of the collection
  * @param {Object}
  *            collection collection object
+ * 
+ * @property {String} name name of the collection
  */
-function Collection(coll) {
+function Collection(name, coll) {
   this._coll = coll;
-}
-
-/**
- * Check if the record matches the query.
- * 
- * @param {Object}
- *            query query object
- * @param {Object}
- *            record record
- * 
- * @returns {Boolean}
- */
-function matches(query, record) {
-  var keys = Object.keys(query);
-  var len = keys.length;
-
-  var matches = true;
-  for ( var i = 0; i < len; i++) {
-    var key = keys[i];
-    if (record[key] !== query[key]) {
-      matches = false;
-      break;
-    }
-  }
-
-  return matches;
+  
+  this.__defineGetter__('name', function() {
+    return name;
+  });
 }
 
 /**
