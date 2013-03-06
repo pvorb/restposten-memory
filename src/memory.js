@@ -323,7 +323,7 @@ Collection.prototype.save = function(record, options, callback) {
 };
 
 /**
- * Removes all records that match the given query object from the collection.
+ * Deletes all records that match the given query object from the collection.
  * 
  * @param {Object|String}
  *            query records that match this query will be deleted
