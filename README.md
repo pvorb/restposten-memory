@@ -1,4 +1,4 @@
-restposten-memory
+Restposten-Memory
 ==================
 
 In-memory database engine intended to be used with
