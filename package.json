@@ -1,7 +1,7 @@
 {
 	"name": "restposten-memory",
 	"version": "0.0.0",
-	"description": "In-memory database engine for restposten",
+	"description": "In-memory database engine for Restposten",
 	"private": true,
 	"author": {
 		"name": "n-fuse Gmbh, Thomas Hoppe et. al.",
