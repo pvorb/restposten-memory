@@ -2,7 +2,7 @@ restposten-memory
 ==================
 
 In-memory database engine intended to be used with
-[restposten](https://github.com/n-fuse/restposten.git), but it can also be
+[Restposten](https://github.com/n-fuse/restposten.git), but it can also be
 used as a standalone in-memory db.
 
 
