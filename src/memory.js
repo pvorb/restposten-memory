@@ -2,11 +2,11 @@
 
 /**
  * A database API for plain JavaScript objects that is compatible to
- * [persistence-mongodb](https://github.com/n-fuse/persistence-memory) and thus
+ * [restposten-mongodb](https://github.com/n-fuse/restposten-memory) and thus
  * can be used as a database abstraction layer for
- * [persistence](https://github.com/n-fuse/persistence).
+ * [restposten](https://github.com/n-fuse/restposten).
  * 
- * @module persistence-memory
+ * @module restposten-memory
  */
 
 var filtr = require('filtr');

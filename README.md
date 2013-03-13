@@ -1,21 +1,21 @@
-persistence-memory
+restposten-memory
 ==================
 
 In-memory database engine intended to be used with
-[Persistence](https://github.com/n-fuse/persistence.git), but it can also be
+[restposten](https://github.com/n-fuse/restposten.git), but it can also be
 used as a standalone in-memory db.
 
 
 Installation
 ------------
 
-    npm install persistence-mongodb
+    npm install restposten-mongodb
 
 
 API Documentation
 -----------------
 
-You can find the API docs at <http://n-fuse.github.com/persistence-memory/>.
+You can find the API docs at <http://n-fuse.github.com/restposten-memory/>.
 
 
 License

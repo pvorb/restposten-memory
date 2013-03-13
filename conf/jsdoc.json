@@ -5,6 +5,6 @@
   "plugins": [ "plugins/markdown" ],
   "opts": {
      "recurse": true,
-     "destination": "../persistence-memory-pages/" 
+     "destination": "../restposten-memory-pages/" 
   }
 }

@@ -1,7 +1,7 @@
 {
-	"name": "persistence-memory",
+	"name": "restposten-memory",
 	"version": "0.0.0",
-	"description": "In-memory database engine for Persistence",
+	"description": "In-memory database engine for restposten",
 	"private": true,
 	"author": {
 		"name": "n-fuse Gmbh, Thomas Hoppe et. al.",
@@ -10,11 +10,11 @@
 	"maintainers": ["Paul Vorbach <paul@vorb.de>"],
 	"main": "./src/memory.js",
 	"bugs": {
-		"url": "https://github.com/n-fuse/persistence-memory/issues"
+		"url": "https://github.com/n-fuse/restposten-memory/issues"
 	},
 	"repository": {
 		"type": "git",
-		"url": "git://github.com/n-fuse/persistence-memory.git"
+		"url": "git://github.com/n-fuse/restposten-memory.git"
 	},
 	"dependencies": {
 		"append": "~0.1.1",
