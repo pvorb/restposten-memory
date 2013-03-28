@@ -379,3 +379,31 @@ Collection.prototype.delete = function(query, options, callback) {
     callback(null, numRemoved);
   });
 };
+
+/**
+ * Count all records in a collection that match the query.
+ * 
+ * @param {Object}
+ *                [query]
+ * @param {Object}
+ *                [options]
+ * @param {Function(err,count)}
+ *                callback
+ */
+Collection.prototype.count = function(query, options, callback) {
+  // optional arguments
+  if (arguments.length == 2) {
+    callback = options;
+    options = {};
+  } else if (arguments.length == 1) {
+    callback = options;
+    options = {};
+  }
+  
+  this.find(query, options, function (err, res) {
+    if (err)
+      return callback(err);
+    
+    callback(null, res.length);
+  });
+};
